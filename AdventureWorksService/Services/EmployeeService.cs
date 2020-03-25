@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using AdventureWorksService.WebApi.Models;
 using AdventureWorksService.WebApi.Interfaces;
 using AutoMapper;
-using AdventureWorksService.WebApi.Contract.Config;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http;
 
 namespace AdventureWorksService.WebApi.Services
@@ -24,7 +22,7 @@ namespace AdventureWorksService.WebApi.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<IList<Contract.VEmployee>> GetAllEmployees()
+        public async Task<IList<Contract.VEmployee>> GetAllEmployee()
         {            
             using (var dbContext = _awDbContext())
             {
@@ -34,5 +32,50 @@ namespace AdventureWorksService.WebApi.Services
                 return employees;
             }
         }
+
+        public async Task<IList<Contract.VEmployeeDepartment>> GetEmployeeDepartment()
+        {
+            using (var dbContext = _awDbContext())
+            {
+                var departments = await dbContext.Set<Contract.VEmployeeDepartment>().AsQueryable()
+                                .ToListAsync();
+
+                return departments;
+            }
+        }
+
+        public async Task<IList<Contract.VEmployeeDepartmentHistory>> GetEmployeeDepartmentHistory()
+        {
+            using (var dbContext = _awDbContext())
+            {
+                var departmentHistories = await dbContext.Set<Contract.VEmployeeDepartmentHistory>().AsQueryable()
+                                .ToListAsync();
+
+                return departmentHistories;
+            }
+        }
+
+        public async Task<IList<Contract.VIndividualCustomer>> GetIndividualCustomer()
+        {
+            using (var dbContext = _awDbContext())
+            {
+                var individualCustomers = await dbContext.Set<Contract.VIndividualCustomer>().AsQueryable()
+                                .ToListAsync();
+
+                return individualCustomers;
+            }
+        }
+
+        public async Task<IList<Contract.VAdditionalContactInfo>> GetEmployeeAdditionalContact()
+        {
+            using (var dbContext = _awDbContext())
+            {
+                var additionalContactInfo = await dbContext.Set<Contract.VAdditionalContactInfo>().AsQueryable()
+                                .ToListAsync();
+
+                return additionalContactInfo;
+            }
+        }
+        
     }
 }

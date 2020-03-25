@@ -6,8 +6,10 @@ using AdventureWorksService.WebApi.Contract;
 
 namespace AdventureWorksService.WebApi.Interfaces
 {
-    public interface IProductService
+    interface IPurchasingService
     {
-        Task<IList<Contract.VProductAndDescription>> GetAllProducts();
+        Task<VVendorWithAddresses> GetVendorWithAddresses();
+
+        Task<VVendorWithContacts> GetVendorWithContacts();
     }
 }

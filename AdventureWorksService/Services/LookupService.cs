@@ -2,35 +2,35 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AdventureWorksService.WebApi.Contract;
-using AdventureWorksService.WebApi.Interfaces;
 using AdventureWorksService.WebApi.Models;
+using AdventureWorksService.WebApi.Interfaces;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using AdventureWorksService.WebApi.Contract;
 
 namespace AdventureWorksService.WebApi.Services
 {
-    public class ProductService : IProductService
+    public class LookupService : ILookupService
     {
         private readonly IMapper _mapper;
         private readonly Func<AdventureWorks2017DbContext> _awDbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public ProductService(IMapper mapper, Func<AdventureWorks2017DbContext> awDbContext, IHttpContextAccessor httpContextAccessor)
+        public LookupService(IMapper mapper, Func<AdventureWorks2017DbContext> awDbContext, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _awDbContext = awDbContext;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<IList<Contract.VProductAndDescription>> GetAllProducts()
+
+        public async Task<IList<Contract.VStateProvinceCountryRegion>> GetStates()
         {
             using (var dbContext = _awDbContext())
             {
-                var products = await dbContext.Set<Contract.VProductAndDescription>().AsQueryable()                                
-                                .ToListAsync();
+                var states = await dbContext.Set<Contract.VStateProvinceCountryRegion>().AsQueryable()
+                                    .ToListAsync();
 
-                return products;
+                return states;
             }
         }
     }

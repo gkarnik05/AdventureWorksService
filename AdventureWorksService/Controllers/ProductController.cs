@@ -12,8 +12,9 @@ namespace AdventureWorksService.WebApi
     [Route("api/product")]
     public class ProductController : Controller
     {
-        private readonly IProductService _productService;
-        public ProductController(IProductService productService)
+        private readonly IProductionService _productService;
+
+        public ProductController(IProductionService productService)
         {
             this._productService = productService;
         }

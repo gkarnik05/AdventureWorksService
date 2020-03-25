@@ -15,7 +15,7 @@ namespace AdventureWorksService.WebApi.Models.Map
         {
             entity.HasNoKey();
 
-            entity.ToView("vSalesPersonSalesByFiscalYears", "Sales");
+            entity.ToView("vSalesPersonSalesByFiscalYears", "Sales");                       
 
             entity.HasComment("Uses PIVOT to return aggregated sales information for each sales representative.");
         }
