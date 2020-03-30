@@ -21,44 +21,44 @@ namespace AdventureWorksService.WebApi.Controllers
 
         [HttpGet("customers")]
         [ProducesResponseType(typeof(IList<Contract.VIndividualCustomer>), StatusCodes.Status200OK)]
-        public async Task<IList<VIndividualCustomer>> GetIndividualCustomers()
+        public async Task<IActionResult> GetIndividualCustomers()
         {
-            return await _salesService.GetIndividualCustomer();
+            return Ok(await _salesService.GetIndividualCustomer());
         }
 
         [HttpGet("salespersons")]
         [ProducesResponseType(typeof(IList<Contract.VSalesPerson>), StatusCodes.Status200OK)]
-        public async Task<IList<VSalesPerson>> GetSalesPersons()
+        public async Task<IActionResult> GetSalesPersons()
         {
-            return await _salesService.GetSalesPerson();
+            return Ok(await _salesService.GetSalesPerson());
         }
 
         [HttpGet("sales")]
         [ProducesResponseType(typeof(IList<Contract.VSalesPersonSalesByFiscalYears>), StatusCodes.Status200OK)]
-        public async Task<IList<VSalesPersonSalesByFiscalYears>> GetSalesPersonSales()
+        public async Task<IActionResult> GetSalesPersonSales()
         {
-            return await _salesService.GetSalesPersonSalesByFiscalYears();
+            return Ok(await _salesService.GetSalesPersonSalesByFiscalYears());
         }
 
         [HttpGet("storeaddresses")]
         [ProducesResponseType(typeof(IList<Contract.VStoreWithAddresses>), StatusCodes.Status200OK)]
-        public async Task<IList<VStoreWithAddresses>> GetStoreWithAddresses()
+        public async Task<IActionResult> GetStoreWithAddresses()
         {
-            return await _salesService.GetStoreWithAddresses();
+            return Ok(await _salesService.GetStoreWithAddresses());
         }
 
         [HttpGet("storecontacts")]
         [ProducesResponseType(typeof(IList<Contract.VStoreWithContacts>), StatusCodes.Status200OK)]
-        public async Task<IList<VStoreWithContacts>> GetStoreWithContacts()
+        public async Task<IActionResult> GetStoreWithContacts()
         {
-            return await _salesService.GetStoreWithContacts();
+            return Ok(await _salesService.GetStoreWithContacts());
         }
 
         [HttpGet("storedemographics")]
         [ProducesResponseType(typeof(IList<Contract.VStoreWithDemographics>), StatusCodes.Status200OK)]
-        public async Task<IList<VStoreWithDemographics>> GetStoreWithDemographics()
+        public async Task<IActionResult> GetStoreWithDemographics()
         {
-            return await _salesService.GetStoreWithDemographics();
+            return Ok(await _salesService.GetStoreWithDemographics());
         }
     }
 }

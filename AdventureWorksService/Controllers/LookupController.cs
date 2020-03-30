@@ -1,10 +1,10 @@
-﻿using AdventureWorksService.WebApi.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AdventureWorksService.WebApi.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using AdventureWorksService.WebApi.Contract;
 
 namespace AdventureWorksService.WebApi.Controllers
@@ -21,9 +21,9 @@ namespace AdventureWorksService.WebApi.Controllers
 
         [HttpGet("states")]
         [ProducesResponseType(typeof(IList<VStateProvinceCountryRegion>), StatusCodes.Status200OK)]
-        public async Task<IList<VStateProvinceCountryRegion>> GetStates()
+        public async Task<IActionResult> GetStates()
         {
-            return await _lookupService.GetStates();
+            return Ok(await _lookupService.GetStates());
         }
 
     }

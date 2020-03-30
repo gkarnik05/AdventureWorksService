@@ -1,16 +1,16 @@
-﻿using AdventureWorksService.WebApi.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AdventureWorksService.WebApi.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using AdventureWorksService.WebApi.Contract;
 
 namespace AdventureWorksService.WebApi.Controllers
 {
     [Route("api/employee")]
-    public class EmployeeController
+    public class EmployeeController : Controller
     {
         private readonly IEmployeeService _employeeService;
 
@@ -22,30 +22,30 @@ namespace AdventureWorksService.WebApi.Controllers
 
         [HttpGet("all")]
         [ProducesResponseType(typeof(IList<VEmployee>),StatusCodes.Status200OK)]
-        public async Task<IList<Contract.VEmployee>> GetAllEmployees()
+        public async Task<IActionResult> GetAllEmployees()
         {
-            return await _employeeService.GetAllEmployee();
+            return Ok(await _employeeService.GetAllEmployee());
         }
 
         [HttpGet("department")]
         [ProducesResponseType(typeof(IList<VEmployeeDepartment>), StatusCodes.Status200OK)]
-        public async Task<IList<Contract.VEmployeeDepartment>> GetEmployeeDepartment()
+        public async Task<IActionResult> GetEmployeeDepartment()
         {
-            return await _employeeService.GetEmployeeDepartment();
+            return Ok(await _employeeService.GetEmployeeDepartment());
         }
 
         [HttpGet("department/history")]
         [ProducesResponseType(typeof(IList<VEmployeeDepartmentHistory>), StatusCodes.Status200OK)]
-        public async Task<IList<Contract.VEmployeeDepartmentHistory>> GetEmployeeDepartmentHistory()
+        public async Task<IActionResult> GetEmployeeDepartmentHistory()
         {
-            return await _employeeService.GetEmployeeDepartmentHistory();
+            return Ok(await _employeeService.GetEmployeeDepartmentHistory());
         }
 
         [HttpGet("additionalcontactinfo")]
         [ProducesResponseType(typeof(IList<VAdditionalContactInfo>), StatusCodes.Status200OK)]
-        public async Task<IList<VAdditionalContactInfo>> GetEmployeeAdditionalContact()
+        public async Task<IActionResult> GetEmployeeAdditionalContact()
         {
-            return await _employeeService.GetEmployeeAdditionalContact();
+            return Ok(await _employeeService.GetEmployeeAdditionalContact());
         }
         
     }

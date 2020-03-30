@@ -21,9 +21,9 @@ namespace AdventureWorksService.WebApi
 
         [HttpGet("all")]
         [ProducesResponseType(typeof(IList<Contract.VProductAndDescription>), StatusCodes.Status200OK)]
-        public async Task<IList<VProductAndDescription>> GetAllProducts()
+        public async Task<IActionResult> GetAllProducts()
         {
-            return await _productService.GetAllProducts();
+            return Ok(await _productService.GetAllProducts());
         }
     }
 }
