@@ -15,7 +15,9 @@ namespace AdventureWorksService.WebApi.Extensions
         public static IServiceCollection RegisterAdventureWorksServices(this IServiceCollection services)
         {
             services.AddScoped<IEmployeeService, EmployeeService>();
-            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductionService, ProductionService>();
+            services.AddScoped<ILookupService, LookupService>();
+            services.AddScoped<ISalesService, SalesService>();
 
             return services;
         }       

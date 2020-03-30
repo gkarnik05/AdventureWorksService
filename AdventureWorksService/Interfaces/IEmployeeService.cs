@@ -8,6 +8,13 @@ namespace AdventureWorksService.WebApi.Interfaces
 {
     public interface IEmployeeService
     {
-        Task<IList<VEmployee>> GetAllEmployees();
+        Task<IList<VEmployee>> GetAllEmployee();
+
+        Task<IList<VEmployeeDepartment>> GetEmployeeDepartment();
+
+        Task<IList<VEmployeeDepartmentHistory>> GetEmployeeDepartmentHistory();
+
+        Task<IList<VAdditionalContactInfo>> GetEmployeeAdditionalContact();
+        
     }
 }

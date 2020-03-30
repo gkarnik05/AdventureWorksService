@@ -12,17 +12,18 @@ namespace AdventureWorksService.WebApi
     [Route("api/product")]
     public class ProductController : Controller
     {
-        private readonly IProductService _productService;
-        public ProductController(IProductService productService)
+        private readonly IProductionService _productService;
+
+        public ProductController(IProductionService productService)
         {
             this._productService = productService;
         }
 
         [HttpGet("all")]
         [ProducesResponseType(typeof(IList<Contract.VProductAndDescription>), StatusCodes.Status200OK)]
-        public async Task<IList<VProductAndDescription>> GetAllProducts()
+        public async Task<IActionResult> GetAllProducts()
         {
-            return await _productService.GetAllProducts();
+            return Ok(await _productService.GetAllProducts());
         }
     }
 }
