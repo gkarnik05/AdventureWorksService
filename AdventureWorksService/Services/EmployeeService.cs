@@ -7,9 +7,12 @@ using AdventureWorksService.WebApi.Interfaces;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using AdventureWorksService.WebApi.Authorization;
 
 namespace AdventureWorksService.WebApi.Services
 {
+    [Authorize(Actions.EmployeesRead)]
     public class EmployeeService : IEmployeeService
     {
         private readonly IMapper _mapper;        

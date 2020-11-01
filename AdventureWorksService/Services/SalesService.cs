@@ -8,9 +8,12 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using AdventureWorksService.WebApi.Contract;
+using Microsoft.AspNetCore.Authorization;
+using AdventureWorksService.WebApi.Authorization;
 
 namespace AdventureWorksService.WebApi.Services
 {
+    [Authorize(Actions.SalesRead)]
     public class SalesService : ISalesService
     {
         private readonly IMapper _mapper;

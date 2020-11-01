@@ -2,15 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AdventureWorksService.WebApi.Authorization;
 using AdventureWorksService.WebApi.Contract;
 using AdventureWorksService.WebApi.Interfaces;
 using AdventureWorksService.WebApi.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace AdventureWorksService.WebApi.Services
 {
+    [Authorize(Actions.ProductsRead)]
     public class ProductionService : IProductionService
     {
         private readonly IMapper _mapper;
