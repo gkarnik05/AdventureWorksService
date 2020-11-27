@@ -25,6 +25,10 @@ using System.Security.Cryptography;
 using System.Text;
 using AdventureWorksService.WebApi.Authorization;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
+using AdventureWorksService.WebApi.Common;
+using AdventureWorksService.WebApi.Interfaces;
+using AdventureWorksService.WebApi.Services;
 
 namespace AdventureWorksService.WebApi
 {
@@ -33,7 +37,7 @@ namespace AdventureWorksService.WebApi
 
         public IConfiguration Configuration { get;}
         public AzureAdConfig AzureAdConfig { get;}
-        public SerilogConfig SerilogConfig { get;}
+        public SerilogConfig SerilogConfig { get;}        
 
         public Startup(IConfiguration configuration)
         {
@@ -45,9 +49,24 @@ namespace AdventureWorksService.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // 1. Register the in-memory cache
+            services.AddMemoryCache();
+
+            // 2. Register the Azure Identity-based token provider
+            services.AddSingleton<IAzureSqlTokenProvider,AzureIdentityAzureSqlTokenProvider>();
+
+            // 3. Register a caching decorator using the Scrutor NuGet package
+            services.Decorate<IAzureSqlTokenProvider, CacheAzureSqlTokenProvider>();
+
+            // 4. Finally, register the interceptor
+            services.AddSingleton<AadAuthenticationDbConnectionInterceptor>();
+
             services.Configure<AzureAdConfig>(Configuration.GetSection("AzureAd"));
+            services.AddApplicationInsightsTelemetry(Configuration.GetSection("ApplicationInsights"));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            
             //Logging           
-            ConfigureLogging(SerilogConfig);
+            ConfigureLogging(SerilogConfig, AzureAdConfig);
 
             services.AddControllers()
                 .AddNewtonsoftJson(x =>
@@ -58,6 +77,8 @@ namespace AdventureWorksService.WebApi
                     };
                 });
 
+            services.AddGrpc();
+
             //HttpContext
             services.AddHttpContextAccessor();
 
@@ -65,10 +86,17 @@ namespace AdventureWorksService.WebApi
             services.RegisterAdventureWorksServices();
 
             //Database
-            services.AddDbContext<AdventureWorks2017DbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("Sql")));
+            services.AddDbContext<AdventureWorks2017DbContext>((provider, options) =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("Sql"), options=>
+                {
+                    options.EnableRetryOnFailure(3, TimeSpan.FromSeconds(30), null);                        
+                });
+                options.AddInterceptors(provider.GetRequiredService<AadAuthenticationDbConnectionInterceptor>());
+            });
+
             services.AddScoped(sp => new Func<AdventureWorks2017DbContext>(() =>
-            sp.GetRequiredService<AdventureWorks2017DbContext>()));
+                    sp.GetRequiredService<AdventureWorks2017DbContext>()));
 
             //Automapper
             services.AddAutoMapper(typeof(Startup));
@@ -76,17 +104,18 @@ namespace AdventureWorksService.WebApi
             //Authentication
             AddAuthentication(services,Configuration, AzureAdConfig);
             //Authorization
-            AddAuthorization(services, Configuration);
+            AddAuthorization(services);
             //Swagger
             AddSwagger(services, AzureAdConfig);
                        
         }
         private static void AddAuthentication(IServiceCollection services, IConfiguration configuration,AzureAdConfig azureAdConfig)
         {
-            services.AddAuthentication(options=> {
+            services.AddAuthentication(options=> 
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
+            })
             .AddAzureADBearer(options =>
             {
                 configuration.Bind("AzureAd", options);
@@ -108,7 +137,7 @@ namespace AdventureWorksService.WebApi
             services.AddSingleton<IClaimsTransformation, ScopeClaimSplitTransformation>();
         }
 
-        private static void AddAuthorization(IServiceCollection services, IConfiguration configuration)
+        private static void AddAuthorization(IServiceCollection services)
         {
             services.AddAuthorization(options=> {
                 // Require callers to have at least one valid permission by default
@@ -127,13 +156,14 @@ namespace AdventureWorksService.WebApi
             services.AddSingleton<IAuthorizationHandler, ActionAuthorizationRequirementHandler>();
         }
 
-        private static void ConfigureLogging(SerilogConfig serilogConfig)
-        {
-            Log.Logger = new LoggerConfiguration()
-                           .Enrich.FromLogContext()
+        private static void ConfigureLogging(SerilogConfig serilogConfig, AzureAdConfig azureAdConfig)
+        {            
+            Log.Logger = new LoggerConfiguration()                           
+                           .Enrich.FromLogContext()                           
                            .Enrich.With(new EnvironmentEnricher(serilogConfig.Environment))
-                           .WriteTo.Console()
-                           .WriteTo.Seq(serilogConfig.ServiceUrl)
+                           .WriteTo.Console()                           
+                           .WriteTo.AzureAnalytics(serilogConfig.WorkspaceId,serilogConfig.PrimaryKey,
+                           new Serilog.Sinks.AzureAnalytics.ConfigurationSettings { LogName= azureAdConfig.ApplicationName })
                            .CreateLogger();
         }
         private static void AddSwagger(IServiceCollection services, AzureAdConfig azureAdConfig)
@@ -142,7 +172,7 @@ namespace AdventureWorksService.WebApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AdventureWorks API", Version = "v1" });
-                c.AddSecurityDefinition("aad-jwt", new OpenApiSecurityScheme
+                c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.OAuth2,
@@ -152,7 +182,9 @@ namespace AdventureWorksService.WebApi
                         {
                             AuthorizationUrl = new Uri($"{azureAdConfig.Instance}{azureAdConfig.TenantId}/oauth2/v2.0/authorize", UriKind.Absolute),
                             TokenUrl = new Uri($"{azureAdConfig.Instance}{azureAdConfig.TenantId}/oauth2/v2.0/token", UriKind.Absolute),
-                            Scopes = DelegatedPermissions.All.ToDictionary(p => $"{azureAdConfig.Audience}/{p}")
+                            Scopes = DelegatedPermissions.All
+                                    .Select(p => new KeyValuePair<string,string>($"{azureAdConfig.Audience}/{p}",p))
+                                    .ToDictionary(p=>p.Key,p => p.Value)                                    
                         }                        
                     },
                     Scheme = "Bearer",
@@ -166,9 +198,12 @@ namespace AdventureWorksService.WebApi
                         new OpenApiSecurityScheme
                             {
                                 Reference = new OpenApiReference
-                                    { Type = ReferenceType.SecurityScheme, Id = SecuritySchemeType.OAuth2.ToString().ToLower() } },
-                                    new[] { $"{azureAdConfig.Audience}"
-                            }
+                                    { 
+                                      Type = ReferenceType.SecurityScheme, 
+                                      Id = SecuritySchemeType.OAuth2.ToString().ToLower() 
+                                } 
+                            },
+                            new[] { $"{azureAdConfig.Audience}" }
                     }
                 });
 
@@ -183,24 +218,30 @@ namespace AdventureWorksService.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseHttpsRedirection();
-            
-            app.UseSerilogRequestLogging();
-
+                     
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers().RequireAuthorization();                
+                endpoints.MapControllers().RequireAuthorization();
+                endpoints.MapGrpcService<EmployeeService>();
+                endpoints.MapGrpcService<ProductionService>();
+                endpoints.MapGrpcService<SalesService>();
             });
+
+            app.UseGrpcWeb();
+
             UseSwagger(app, AzureAdConfig);
             
         }
 
-        private static void UseSwagger(IApplicationBuilder app,AzureAdConfig azureAdConfig)
+        private static void UseSwagger(IApplicationBuilder app, AzureAdConfig azureAdConfig)
         {
             app.UseSwagger();
             app.UseSwaggerUI(c =>

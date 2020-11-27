@@ -1,32 +1,50 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Serilog;
+using System.Net;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace AdventureWorksService.WebApi
 {
     public class Program
-    {
+    {        
         public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
+        {                      
+            CreateHostBuilder(args).Build().Run();            
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((hostingContext, config) => 
+            .ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                config.SetBasePath(Directory.GetCurrentDirectory());
+                var settings = config.Build();
+                var appConfigEndpoint = settings.GetConnectionString("AppConfig");
+                
+                config.AddAzureAppConfiguration(options =>
                 {
-                    config.SetBasePath(Directory.GetCurrentDirectory());
-                })
-                .ConfigureWebHostDefaults(webBuilder =>
+                    options.Connect(appConfigEndpoint);
+                    options.ConfigureRefresh(refresh =>
+                        refresh.Register("Serilog:PrimaryKey")
+                            .SetCacheExpiration(TimeSpan.FromSeconds(10)));
+                    
+                }).Build();             
+                                               
+            })
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.ConfigureKestrel(options =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                }).UseSerilog();
+                    options.Listen(IPAddress.Any, 5001, listenOptions =>
+                    {
+                        listenOptions.Protocols = HttpProtocols.Http2;           
+                    });
+                });
+                
+                webBuilder.UseStartup<Startup>();
+
+            });
     }
 }

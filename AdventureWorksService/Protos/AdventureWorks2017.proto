@@ -1,0 +1,35 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "AdventureWorks2017.Types";
+
+package AdventureWorks2017.protobuf;
+import "google/protobuf/empty.proto";
+
+service Employee{
+	rpc All(google.protobuf.Empty) returns (EmployeesResponse);
+}
+
+message EmployeesResponse{
+	repeated EmployeeResponse Employees = 1;
+}
+
+message EmployeeResponse{
+	string businessentityid = 1;
+	string title = 2;
+	string firstName = 3;
+	string middleName = 4;
+	string lastName = 5;
+	string suffix = 6;
+	string jobTitle = 7;
+	string phoneNumber = 8;
+	string phoneNumberType = 9;
+	string emailAddress = 10;
+	string emailPromotion = 11;
+	string addressLine1 = 12;
+	string addressLine2 = 13;
+	string city =  14;
+	string stateProvinceName =  15;
+	string postalCode = 16;
+	string countryRegionName = 17;
+	string additionalContactInfo = 18;
+}

@@ -9,5 +9,7 @@ namespace AdventureWorksService.WebApi.Config
     {
         public string Environment { get; set; }
         public string ServiceUrl { get; set; }
+        public string WorkspaceId { get; set; }
+        public string PrimaryKey { get; set; }
     }
 }
